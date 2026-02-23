@@ -1,4 +1,4 @@
-# Intranet con Deno Fresh 2.1
+# Trenfe Frontend con Deno Fresh 2.1
 
 Aplicación completa de intranet con autenticación, gestión de noticias, tickets y perfil de usuario.
 
@@ -7,11 +7,6 @@ Aplicación completa de intranet con autenticación, gestión de noticias, ticke
 ```
 /
 ├── main.ts                        # Punto de entrada de la aplicación
-├── client.ts                      # Cliente HTTP compartido
-├── deno.json                      # Configuración de Deno
-├── package.json                   # Dependencias npm (si aplica)
-├── _app.tsx                       # Wrapper global de la aplicación
-├── _layout.tsx                    # Layout base compartido
 ├── components/                    # Componentes reutilizables (SSR)
 │   ├── Alert.tsx                  # Alerta genérica
 │   ├── Alert2.tsx                 # Variante de alerta
@@ -57,9 +52,8 @@ Aplicación completa de intranet con autenticación, gestión de noticias, ticke
 │   │   │   └── index.tsx          # Listado de tickets (protegido)
 │   │   └── success/
 │   │       └── [id].tsx           # Confirmación de compra de ticket
-│   └── index.tsx                  # Página principal / noticias
-└── static/                        # Archivos estáticos
-    └── assets/                    # Imágenes y recursos
+└────── index.tsx                  # Página principal / noticias
+
 ```
 
 ## Instalación
@@ -100,7 +94,7 @@ Body: { "bearer": "string" }
 
 ## Configuración de la API
 
-Todas las llamadas a la API se realizan contra el backend en `https://backend-renfe.sergioom9.deno.net`. Puedes centralizar la URL base en `client.ts` para facilitar su cambio.
+Todas las llamadas a la API se realizan contra el backend en `https://backend-renfe.sergioom9.deno.net`.
 
 ### Endpoints principales
 
@@ -129,15 +123,7 @@ Todas las llamadas a la API se realizan contra el backend en `https://backend-re
 
 ### Reemplazar la URL del backend
 
-Si necesitas apuntar a otro backend, busca y reemplaza `https://backend-renfe.sergioom9.deno.net` en los siguientes archivos:
-
-- `main.ts` (middleware de autenticación)
-- `client.ts`
-- `islands/Login.tsx`
-- `islands/Register.tsx`
-- `islands/Tickets.tsx`
-- `islands/IndividualTicket.tsx`
-- `islands/User.tsx`
+Si necesitas apuntar a otro backend, busca y reemplaza `https://backend-renfe.sergioom9.deno.net`.
 
 ## Características
 
@@ -207,7 +193,7 @@ Inicio (/)
 
 ## Seguridad
 
-- El token se almacena en una cookie `bearer` (HttpOnly recomendado)
+- El token se almacena en una cookie `bearer`
 - Cada petición protegida valida el token contra el backend antes de renderizar
 - Si el token es inválido o ha expirado, el usuario es redirigido a `/login`
 - Las rutas públicas `(main)` comprueban si ya hay sesión para evitar doble login
@@ -217,8 +203,5 @@ Inicio (/)
 Los estilos principales se encuentran en `static/` y los componentes de layout en `_app.tsx` y `_layout.tsx`. Puedes modificar `components/Header.tsx` y `components/Footer.tsx` para adaptar la navegación a tu proyecto.
 
 ## Notas
-
-- Esta aplicación es un template base conectado a una API de ejemplo (`backend-renfe.sergioom9.deno.net`)
-- Reemplaza la URL del backend con tu propia API antes de desplegar en producción
 - Añade validación de formularios adicional en el servidor según tus necesidades
 - Considera implementar refresh tokens para mejorar la experiencia de sesión
