@@ -7,6 +7,28 @@ app.use(staticFiles());
 
 dotenv.config();
 
+const apiCachePolicy = define.middleware(async (ctx: any) => {
+  const response = await ctx.next();
+  const path = new URL(ctx.req.url).pathname;
+
+  const isCacheableGet = ctx.req.method === "GET" &&
+    (path === "/api/news" || path === "/api/tickets" ||
+      path.startsWith("/api/ticket/") || path.startsWith("/api/track/"));
+
+  if (isCacheableGet) {
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=60, stale-while-revalidate=30",
+    );
+  } else {
+    response.headers.set("Cache-Control", "no-store");
+  }
+
+  return response;
+});
+
+app.use("/api", apiCachePolicy);
+
 app.post("/api/login", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
@@ -34,15 +56,17 @@ app.post("/api/login", async (ctx: any) => {
       },
     );
     const result = await apiResponse.json();
-    if(result.error=="Anti-BruteForce Triggered") {
+    if (result.error == "Anti-BruteForce Triggered") {
       return new Response(
         JSON.stringify({ error: "Email bloqueado por seguridad" }),
         { status: 429, headers: { "Content-Type": "application/json" } },
       );
     }
-    if(result.error=="Too many requests") {
+    if (result.error == "Too many requests") {
       return new Response(
-        JSON.stringify({ error: "Demasiadas solicitudes, inténtalo más tarde" }),
+        JSON.stringify({
+          error: "Demasiadas solicitudes, inténtalo más tarde",
+        }),
         { status: 429, headers: { "Content-Type": "application/json" } },
       );
     }
