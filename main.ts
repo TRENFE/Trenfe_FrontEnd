@@ -7,7 +7,7 @@ app.use(staticFiles());
 
 dotenv.config();
 
-app.post("/api/login", async (ctx) => {
+app.post("/api/login", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     if (!data) {
@@ -33,13 +33,25 @@ app.post("/api/login", async (ctx) => {
         body: JSON.stringify(data),
       },
     );
+    const result = await apiResponse.json();
+    if(result.error=="Anti-BruteForce Triggered") {
+      return new Response(
+        JSON.stringify({ error: "Email bloqueado por seguridad" }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    if(result.error=="Too many requests") {
+      return new Response(
+        JSON.stringify({ error: "Demasiadas solicitudes, inténtalo más tarde" }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
+      );
+    }
     if (!apiResponse.ok) {
       return new Response(
         JSON.stringify({ error: "Credenciales Incorrectas" }),
         { status: 401, headers: { "Content-Type": "application/json" } },
       );
     }
-    const result = await apiResponse.json();
     return new Response(
       JSON.stringify(result),
       { status: 200, headers: apiResponse.headers },
@@ -52,7 +64,7 @@ app.post("/api/login", async (ctx) => {
   }
 });
 
-app.post("/api/register", async (ctx) => {
+app.post("/api/register", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     if (!data) {
@@ -97,7 +109,7 @@ app.post("/api/register", async (ctx) => {
   }
 });
 
-app.post("/api/token", async (ctx) => {
+app.post("/api/token", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     if (!data) {
@@ -142,7 +154,7 @@ app.post("/api/token", async (ctx) => {
   }
 });
 
-app.post("/api/user", async (ctx) => {
+app.post("/api/user", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     const { bearer } = data;
@@ -223,7 +235,7 @@ app.get("/api/tickets", async () => {
   }
 });
 
-app.get("/api/ticket/:ticketid", async (ctx) => {
+app.get("/api/ticket/:ticketid", async (ctx: any) => {
   try {
     const ticketid = ctx.params.ticketid;
     const apiResponse = await fetch(
@@ -248,7 +260,7 @@ app.get("/api/ticket/:ticketid", async (ctx) => {
   }
 });
 
-app.post("/api/tickets", async (ctx) => {
+app.post("/api/tickets", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     if (!data) {
@@ -286,7 +298,7 @@ app.post("/api/tickets", async (ctx) => {
   }
 });
 
-app.post("/api/news", async (ctx) => {
+app.post("/api/news", async (ctx: any) => {
   try {
     const data = await ctx.req.json();
     if (!data) {
@@ -324,7 +336,7 @@ app.post("/api/news", async (ctx) => {
   }
 });
 
-app.post("/api/buy", async (ctx) => {
+app.post("/api/buy", async (ctx: any) => {
   try {
     const cookie = ctx.req.headers.get("cookie") || "";
     const match = cookie.match(/bearer=([^;]+)/);
@@ -342,7 +354,13 @@ app.post("/api/buy", async (ctx) => {
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    const { ticketid,quantity } = data;
+    const { ticketid, quantity } = data;
+    if (!ticketid || !Number.isInteger(quantity) || quantity <= 0) {
+      return new Response(
+        JSON.stringify({ error: "Invalid params" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
     const apiResponse = await fetch(
       "https://backend-renfe.sergioom9.deno.net/token/user",
       {
@@ -350,7 +368,7 @@ app.post("/api/buy", async (ctx) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ bearer:token }),
+        body: JSON.stringify({ bearer: token }),
       },
     );
     if (!apiResponse.ok) {
@@ -367,7 +385,7 @@ app.post("/api/buy", async (ctx) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Cookie":`bearer=${token}`
+          "Cookie": `bearer=${token}`,
         },
         body: JSON.stringify({ ticketid, userid, quantity }),
       },
@@ -391,7 +409,32 @@ app.post("/api/buy", async (ctx) => {
   }
 });
 
-const checkAuth = define.middleware(async (ctx) => {
+app.get("/api/track/:ticketid", async (ctx: any) => {
+  try {
+    const ticketid = ctx.params.ticketid;
+    const apiResponse = await fetch(
+      `https://backend-renfe.sergioom9.deno.net/track/${ticketid}`,
+    );
+    if (!apiResponse.ok) {
+      return new Response(
+        JSON.stringify({ error: apiResponse.statusText }),
+        { status: 401, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    const result = await apiResponse.json();
+    return new Response(
+      JSON.stringify(result),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: `Error interno` }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+});
+
+const checkAuth = define.middleware(async (ctx: any) => {
   const cookie = ctx.req.headers.get("cookie") || "";
   const match = cookie.match(/bearer=([^;]+)/);
   const token = match?.[1];
@@ -409,11 +452,12 @@ const checkAuth = define.middleware(async (ctx) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({bearer:token}),
+        body: JSON.stringify({ bearer: token }),
       },
     );
     if (!apiResponse.ok) {
-      document.cookie = "bearer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "bearer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       return new Response(
         JSON.stringify({ error: apiResponse.statusText }),
         { status: 401, headers: { "Content-Type": "application/json" } },
@@ -428,7 +472,7 @@ const checkAuth = define.middleware(async (ctx) => {
   }
 });
 
-const alreadylogged = define.middleware(async (ctx) => {
+const alreadylogged = define.middleware(async (ctx: any) => {
   const cookie = ctx.req.headers.get("cookie") || "";
   const match = cookie.split("=");
   const token = match?.[1];
@@ -441,11 +485,12 @@ const alreadylogged = define.middleware(async (ctx) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ bearer:token }),
+        body: JSON.stringify({ bearer: token }),
       },
     );
     if (!apiResponse.ok) {
-      document.cookie = "bearer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "bearer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       return new Response(
         JSON.stringify({ error: apiResponse.statusText }),
         { status: 401, headers: { "Content-Type": "application/json" } },

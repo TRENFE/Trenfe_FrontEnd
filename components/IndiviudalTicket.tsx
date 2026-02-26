@@ -2,7 +2,6 @@ import { useEffect, useState } from "preact/hooks";
 import Loading from "../components/Loading.tsx";
 import styles from "../assets/IndividualTicket.module.css";
 import BuyButton from "./BuyTicketButton.tsx";
-import { get } from "node:http";
 
 type Ticket = {
   ticketid: string;

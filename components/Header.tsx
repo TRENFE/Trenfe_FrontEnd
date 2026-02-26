@@ -14,6 +14,7 @@ const Header = () => {
     document.cookie = "bearer=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     globalThis.location.href = "/";
   };
+
   if (isLoading) {
     return (
       <header>
@@ -21,12 +22,14 @@ const Header = () => {
           <div className="button-group">
             <a href="/" className="headerbutton">Menu</a>
             <a href="/tickets" className="headerbutton">Billetes</a>
+            <a href="/track" className="headerbutton">Seguimiento</a>
             <a href="/news" className="headerbutton">Noticias</a>
           </div>
         </div>
       </header>
     );
   }
+
   return (
     <header>
       <div className="liquid-glass">
@@ -35,6 +38,7 @@ const Header = () => {
             <img src={logo} className="logo" />
           </a>
           <a href="/tickets" className="headerbutton">Billetes</a>
+          <a href="/track" className="headerbutton">Seguimiento</a>
           <a href="/news" className="headerbutton">Noticias</a>
           {isAuthenticated
             ? (

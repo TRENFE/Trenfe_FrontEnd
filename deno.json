@@ -2,7 +2,7 @@
   "nodeModulesDir": "auto",
     "tasks": {
       "check": "deno fmt --check . && deno lint . && deno check",
-      "dev": "deno run -A https://deno.land/x/fresh@1.6.8/dev.ts",
+      "dev": "vite",
       "build": "vite build",
       "start": "deno serve -A --watch _fresh/server.js",
       "update": "deno run -A -r jsr:@fresh/update ."
@@ -21,6 +21,7 @@
   "imports": {
     "fresh": "jsr:@fresh/core@^2.1.2",
     "preact": "npm:preact@^10.27.2",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.3.1",
     "@preact/signals": "npm:@preact/signals@^2.3.1",
     "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^1.0.5",
     "vite": "npm:vite@^7.1.3"

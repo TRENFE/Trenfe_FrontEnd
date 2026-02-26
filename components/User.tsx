@@ -23,8 +23,6 @@ export default function IndividualUser() {
           .split(";")
           .find((row) => row.trim().startsWith("bearer="))
           ?.split("=")[1];
-          console.log("e" + document.cookie)
-          console.log(tkn)
         const res = await fetch("/api/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -38,8 +36,7 @@ export default function IndividualUser() {
 
         const data = await res.json();
         if (!cancelled) setUser(data);
-      } catch (err) {
-        console.log(err)
+      } catch (_err) {
         if (!cancelled) globalThis.location.replace("/");
       } finally {
         if (!cancelled) setLoading(false);

@@ -23,6 +23,7 @@ const LoginPage=()=> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData),
     });
+    const data = await res.json();
     if (res.ok) {
       setMsg({message:"✅ Login correcto",visible:true});
       alertVisible.value = true;
@@ -55,8 +56,14 @@ const LoginPage=()=> {
           alertVisible.value = true;
         }
     } else {
-      setMsg({ message: "❌ Login Incorrecto", visible: true });
+      if(res.status === 429){
+        setMsg({ message: `❌ ${data.error}`, visible: true });
+        alertVisible.value = true;
+        return;
+      }else{
+      setMsg({ message: `❌ Login Incorrecto`, visible: true });
       alertVisible.value = true;
+      }
     }
 }
 

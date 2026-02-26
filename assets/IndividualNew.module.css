@@ -22,7 +22,7 @@ body {
     grid-template-columns: 1fr;
     min-height: 100vh;
     /* background:linear-gradient(to right bottom,#dbeafe,#8026ff,#000); */
-    background-image: url("./background.webp");
+    background-image: url("/background.webp");
     /* opacity: 90%; */
     /* background-image: revert; */
     position: relative;

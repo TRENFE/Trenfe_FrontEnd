@@ -1,4 +1,5 @@
 import { define } from "../utils.ts";
+import "../assets/styles.css";
 
 export default define.page(function App({ Component }) {
   return (

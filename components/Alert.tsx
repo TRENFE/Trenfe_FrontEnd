@@ -44,7 +44,7 @@ const Alert = ({message, error}:AlertProps) => {
                     color: message.includes("✅") ? "green" : "red",
                   }}
                 >
-                  🗙
+                  X
                 </button>
               </div>
     )
