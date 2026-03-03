@@ -1,207 +1,385 @@
-# Trenfe Frontend con Deno Fresh 2.1
+# Trenfe Plataforma Unificada (Frontend + Backend + Intranet)
 
-Aplicación completa de intranet con autenticación, gestión de noticias, tickets y perfil de usuario.
+Documentacion tecnica unificada del ecosistema Trenfe.
+Formato basado en la estructura del README de backend.
 
-## Estructura del Proyecto
-
-```
-/
-├── main.ts                        # Punto de entrada de la aplicación
-├── components/                    # Componentes reutilizables (SSR)
-│   ├── Alert.tsx                  # Alerta genérica
-│   ├── Alert2.tsx                 # Variante de alerta
-│   ├── BuyButton.tsx              # Botón de compra
-│   ├── BuyTicketButton.tsx        # Botón de compra de ticket
-│   ├── Footer.tsx                 # Pie de página
-│   ├── Header.tsx                 # Cabecera de la aplicación
-│   ├── Index.tsx                  # Componente de página principal
-│   ├── IndividualNew.tsx          # Vista de una noticia individual
-│   ├── IndividualTicket.tsx       # Vista de un ticket individual
-│   ├── Loading.tsx                # Indicador de carga
-│   ├── Login.tsx                  # Formulario de inicio de sesión
-│   ├── New.tsx                    # Tarjeta de noticia
-│   ├── News.tsx                   # Listado de noticias
-│   ├── Register.tsx               # Formulario de registro
-│   ├── SuccessCard.tsx            # Tarjeta de compra exitosa
-│   ├── Ticket.tsx                 # Tarjeta de ticket
-│   ├── Tickets.tsx                # Listado de tickets
-│   └── User.tsx                   # Información de usuario
-├── islands/                       # Componentes interactivos (cliente)
-│   ├── Alert.tsx                  # Alerta interactiva
-│   ├── BuyButton.tsx              # Botón de compra interactivo
-│   ├── HeaderIsland.tsx           # Cabecera con estado cliente
-│   ├── IndividualNewIsland.tsx    # Noticia individual interactiva
-│   ├── IndividualTicket.tsx       # Ticket individual interactivo
-│   ├── Login.tsx                  # Login con manejo de estado
-│   ├── News.tsx                   # Noticias con filtros interactivos
-│   ├── Register.tsx               # Registro con validación cliente
-│   ├── SuccessIsland.tsx          # Confirmación de compra interactiva
-│   ├── Tickets.tsx                # Tickets con filtros interactivos
-│   └── User.tsx                   # Perfil de usuario interactivo
-├── routes/                        # Rutas de la aplicación
-│   ├── (main)/                    # Grupo de rutas públicas (redirige si ya hay sesión)
-│   │   ├── login.tsx              # Página de inicio de sesión
-│   │   └── register.tsx           # Página de registro
-│   ├── (me)/                      # Grupo de rutas protegidas (requiere autenticación)
-│   │   └── profile.tsx            # Página de perfil del usuario
-│   ├── news/
-│   │   └── [id].tsx               # Detalle de una noticia
-│   ├── tickets/
-│   │   ├── (main)/
-│   │   │   ├── [id].tsx           # Detalle de un ticket
-│   │   │   └── index.tsx          # Listado de tickets (protegido)
-│   │   └── success/
-│   │       └── [id].tsx           # Confirmación de compra de ticket
-└────── index.tsx                  # Página principal / noticias
+## Estructura General del Proyecto
 
 ```
+/Users/sergioom9/Documents/Universidad/TRENFE
+├── Trenfe_BackEnd/              # API REST (Express + MongoDB con Deno)
+├── Trenfe_FrontEnd/             # Web publica (Fresh 2 + Vite)
+└── Trenfe_Intranet/             # Panel admin (Fresh 2 + Vite)
+```
 
-## Instalación
+---
 
-1. Instala Deno si no lo tienes: https://deno.land/
-2. Clona o descarga el proyecto
-3. Ejecuta la aplicación en modo desarrollo:
+## Frontend (Web publica)
+
+### Estructura del Proyecto
+
+```
+Trenfe_FrontEnd/
+├── main.ts                     # API gateway local + middlewares auth/cache + chatbot
+├── routes/
+│   ├── _app.tsx                # Shell HTML global
+│   ├── _layout.tsx             # Header/Footer global
+│   ├── index.tsx               # Home
+│   ├── (main)/
+│   │   ├── login.tsx           # Login (publica)
+│   │   └── register.tsx        # Registro (publica)
+│   ├── (me)/
+│   │   └── profile.tsx         # Perfil (protegida)
+│   ├── news/                   # Listado y detalle de noticias
+│   ├── tickets/                # Listado, detalle y confirmacion de compra
+│   └── track/                  # Formulario y detalle de tracking
+├── components/                 # Componentes UI
+├── islands/                    # Islas interactivas
+├── assets/                     # CSS e imagenes
+└── static/                     # Assets publicos
+```
+
+### Instalacion
+
+1. Entra en `Trenfe_FrontEnd`
+2. Arranca en desarrollo:
 
 ```bash
 deno task dev
 ```
 
-4. Abre tu navegador en http://localhost:8000
+3. Build y arranque de produccion:
 
-## Autenticación y Middleware
-
-El sistema de autenticación usa cookies HttpOnly con un token `bearer`. Hay dos middlewares definidos en `main.ts`:
-
-### `checkAuth` — Rutas protegidas
-
-Verifica que exista una cookie `bearer` válida. Si no hay token o la validación falla, redirige al usuario a `/login`. Se aplica a:
-
-- `/tickets/(main)` — Listado y detalle de tickets
-- `/(me)` — Perfil del usuario
-
-### `alreadyLogged` — Rutas públicas
-
-Redirige a `/profile` si el usuario ya tiene sesión activa, evitando que acceda de nuevo al login o registro. Se aplica a:
-
-- `/(main)` — Login y registro
-
-La validación del token se realiza contra el backend en cada petición:
-
-```
-POST https://backend-renfe.sergioom9.deno.net/token/user
-Body: { "bearer": "string" }
+```bash
+deno task build
+deno task start
 ```
 
-## Configuración de la API
+### Variables de Entorno
 
-Todas las llamadas a la API se realizan contra el backend en `https://backend-renfe.sergioom9.deno.net`.
-
-### Endpoints principales
-
-**Autenticación:**
-- `POST /auth/login` — Inicio de sesión
-  - Body: `{ "email": "string", "password": "string" }`
-  - Respuesta: `{ "bearer": "string" }`
-- `POST /auth/register` — Registro de nuevo usuario
-  - Body: `{ "nombre": "string", "email": "string", "password": "string" }`
-
-**Validación de token:**
-- `POST /token/user` — Valida el token y devuelve datos del usuario
-  - Body: `{ "bearer": "string" }`
-
-**Noticias:**
-- `GET /noticias` — Listar noticias
-- `GET /noticias/:id` — Obtener noticia por ID
-
-**Tickets:**
-- `GET /tickets` — Listar tickets
-- `GET /tickets/:id` — Obtener ticket por ID
-- `POST /tickets/:id/comprar` — Comprar un ticket (requiere autenticación)
-
-**Usuario:**
-- `GET /me` — Obtener perfil del usuario autenticado
-
-### Reemplazar la URL del backend
-
-Si necesitas apuntar a otro backend, busca y reemplaza `https://backend-renfe.sergioom9.deno.net`.
-
-## Características
-
-✅ Autenticación con token Bearer en cookie HttpOnly  
-✅ Middleware automático de protección de rutas  
-✅ Redirección si ya hay sesión activa  
-✅ Registro e inicio de sesión  
-✅ Listado y detalle de noticias  
-✅ Listado y detalle de tickets (protegido)  
-✅ Compra de tickets con página de confirmación  
-✅ Perfil del usuario autenticado  
-✅ Interfaz responsive  
-✅ Componentes de carga y alertas  
-✅ Navegación con cabecera dinámica  
-
-## Modelos de Datos
-
-### Usuario
-```typescript
-{
-  id: number,
-  nombre: string,
-  email: string,
-  rol: "admin" | "editor" | "usuario"
-}
+```env
+GEMINI_API_KEY=tu_api_key
 ```
 
-### Noticia
-```typescript
-{
-  id: number,
-  titulo: string,
-  contenido: string,
-  categoria: "general" | "tecnologia" | "recursos_humanos" | "eventos",
-  fecha: string // ISO 8601
-}
+| Variable         | Descripcion |
+|------------------|-------------|
+| `GEMINI_API_KEY` | API key para el endpoint `/api/chatbot` |
+
+### Endpoints de la API (Gateway local `main.ts`)
+
+#### Auth / Usuario
+
+| Metodo | Ruta            | Proxy backend      | Descripcion |
+|--------|-----------------|--------------------|-------------|
+| POST   | `/api/login`    | `POST /login`      | Login |
+| POST   | `/api/register` | `POST /register`   | Registro |
+| POST   | `/api/token`    | `POST /token`      | Validacion token |
+| POST   | `/api/user`     | `POST /token/user` | Datos de usuario por bearer |
+
+#### Noticias
+
+| Metodo | Ruta        | Proxy backend      | Descripcion |
+|--------|-------------|--------------------|-------------|
+| GET    | `/api/news` | `GET /news`        | Listado noticias |
+| POST   | `/api/news` | `GET /news/:newid` | Detalle noticia por id |
+
+#### Tickets
+
+| Metodo | Ruta                    | Proxy backend           | Descripcion |
+|--------|-------------------------|-------------------------|-------------|
+| GET    | `/api/tickets`          | `GET /ticket`           | Listado tickets |
+| GET    | `/api/ticket/:ticketid` | `GET /ticket/:ticketid` | Detalle ticket |
+| POST   | `/api/tickets`          | `GET /ticket/:ticketid` | Lookup ticket por body |
+| POST   | `/api/buy`              | `POST /ticket/sell`     | Compra (requiere cookie bearer) |
+
+#### Tracking
+
+| Metodo | Ruta                  | Proxy backend         | Descripcion |
+|--------|-----------------------|-----------------------|-------------|
+| GET    | `/api/track/:ticketid`| `GET /track/:ticketid`| Tracking por ticket |
+
+#### Chatbot
+
+| Metodo | Ruta           | Descripcion |
+|--------|----------------|-------------|
+| POST   | `/api/chatbot` | Asistente conversacional con Gemini, usando contexto de usuario/tickets/noticias |
+
+### Rutas Web
+
+| Ruta                  | Descripcion |
+|-----------------------|-------------|
+| `/`                   | Home |
+| `/login`              | Login |
+| `/register`           | Registro |
+| `/profile`            | Perfil (protegida) |
+| `/news`               | Listado noticias |
+| `/news/:id`           | Detalle noticia |
+| `/tickets`            | Listado tickets |
+| `/tickets/:id`        | Detalle ticket |
+| `/tickets/success/:id`| Confirmacion compra |
+| `/track`              | Formulario tracking |
+| `/track/:id`          | Mapa tracking |
+
+### Seguridad
+
+- Middleware `checkAuth` en rutas protegidas (`/(me)` y `/tickets/(main)`)
+- Middleware `alreadylogged` en rutas de login/registro (`/(main)`)
+- Validacion de token contra backend (`/token/user`)
+- Compra segura en `/api/buy` validando token + `quantity` entero positivo
+
+### Cache
+
+- `GET /api/news`, `GET /api/tickets`, `GET /api/ticket/:ticketid`, `GET /api/track/:ticketid`
+  - `Cache-Control: public, max-age=60, stale-while-revalidate=30`
+- Resto de endpoints `/api/*`
+  - `Cache-Control: no-store`
+
+### Notas de UI y Chatbot
+
+- El chatbot debe mantener estilo moderno y coherente con la web publica (misma linea visual, tipografia y tono de interfaz).
+- Se recomienda conservar componentes compartidos de estilo para evitar divergencias entre vistas y chatbot.
+
+---
+
+## Backend (API REST)
+
+### Estructura del Proyecto
+
+```
+Trenfe_BackEnd/
+├── server.ts                # Punto de entrada
+├── security.ts              # Middlewares de seguridad + cache headers
+├── util.ts                  # JWT helpers y utilidades
+├── auth.ts                  # Helpers de autorizacion
+├── cache.ts                 # Cache en memoria
+├── types.ts                 # Tipos compartidos
+├── DB/                      # Modelos (Mongoose)
+│   ├── news.ts
+│   ├── tickets.ts
+│   ├── track.ts
+│   └── user.ts
+└── routes/                  # Rutas API
+    ├── login.ts
+    ├── register.ts
+    ├── token.ts
+    ├── news.ts
+    ├── ticket.ts
+    ├── track.ts
+    └── user.ts
 ```
 
-### Ticket
-```typescript
-{
-  id: number,
-  titulo: string,
-  descripcion: string,
-  precio: number,
-  fecha: string, // ISO 8601
-  disponibles: number
-}
+### Instalacion
+
+1. Entra en `Trenfe_BackEnd`
+2. Arranca servidor:
+
+```bash
+deno task start
 ```
 
-## Flujo de la Aplicación
+3. API disponible en `http://localhost:3000`
 
-```
-Inicio (/)
-  └─ Listado de noticias
-       └─ /news/:id → Detalle de noticia
+### Variables de Entorno
 
-/login  ──────────────────────────────── (main) → redirige a /profile si ya hay sesión
-/register
-
-/profile ─────────────────────────────── (me) → requiere autenticación
-
-/tickets ─────────────────────────────── (main) → requiere autenticación
-  └─ /tickets/:id → Detalle de ticket
-       └─ /tickets/success/:id → Confirmación de compra
+```env
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+PORT=3000
+ADMIN_TOKEN=example-admin-token
+JWT_SECRET=example-jwt-secret
+API_NINJAS_API_KEY=example-api-key
+GOOGLE_API_KEY=example-google-key
 ```
 
-## Seguridad
+| Variable             | Descripcion |
+|----------------------|-------------|
+| `MONGO_URI`          | Conexion a MongoDB Atlas |
+| `PORT`               | Puerto del servidor |
+| `ADMIN_TOKEN`        | Token estatico de operaciones admin |
+| `JWT_SECRET`         | Firma/verificacion JWT |
+| `API_NINJAS_API_KEY` | Geolocalizacion en `/track/create` |
+| `GOOGLE_API_KEY`     | Utilidades IA (`sendAIPrompt`) |
 
-- El token se almacena en una cookie `bearer`
-- Cada petición protegida valida el token contra el backend antes de renderizar
-- Si el token es inválido o ha expirado, el usuario es redirigido a `/login`
-- Las rutas públicas `(main)` comprueban si ya hay sesión para evitar doble login
+### Endpoints
 
-## Personalización
+#### Autenticacion
 
-Los estilos principales se encuentran en `static/` y los componentes de layout en `_app.tsx` y `_layout.tsx`. Puedes modificar `components/Header.tsx` y `components/Footer.tsx` para adaptar la navegación a tu proyecto.
+- `POST /login`
+- `POST /register`
 
-## Notas
-- Añade validación de formularios adicional en el servidor según tus necesidades
-- Considera implementar refresh tokens para mejorar la experiencia de sesión
+#### Token
+
+- `POST /token`
+- `POST /token/user`
+
+#### Noticias
+
+| Metodo | Ruta           | Auth       |
+|--------|----------------|------------|
+| GET    | `/news`        | No |
+| GET    | `/news/:newid` | No |
+| POST   | `/news/create` | Si (admin) |
+| PUT    | `/news`        | Si (admin) |
+| DELETE | `/news/:newid` | Si (admin) |
+
+#### Tickets
+
+| Metodo | Ruta                | Auth            |
+|--------|---------------------|-----------------|
+| GET    | `/ticket`           | No |
+| GET    | `/ticket/:ticketid` | No |
+| POST   | `/ticket/create`    | Si (admin) |
+| POST   | `/ticket/sell`      | Usuario o admin |
+| PUT    | `/ticket`           | Si (admin) |
+| DELETE | `/ticket/:ticketid` | Si (admin) |
+
+#### Tracking
+
+| Metodo | Ruta               | Auth       |
+|--------|--------------------|------------|
+| GET    | `/track/:ticketid` | No |
+| POST   | `/track/create`    | Si (admin) |
+| DELETE | `/track/:ticketid` | Si (admin) |
+
+#### Usuario
+
+| Metodo | Ruta            | Auth            |
+|--------|-----------------|-----------------|
+| GET    | `/user`         | Si (admin) |
+| GET    | `/user/:userid` | Usuario o admin |
+| PUT    | `/user`         | Usuario o admin |
+| DELETE | `/user/:userid` | Usuario o admin |
+
+### Seguridad
+
+- Passwords con `bcryptjs`
+- JWT con `JWT_SECRET`
+- Endpoints admin con `ADMIN_TOKEN`
+- `helmet`, `express-rate-limit`, guardas anti-XSS/SSRF/NoSQL injection
+- Politica de cache global en `security.ts`
+
+---
+
+## Intranet (Panel Admin)
+
+### Estructura del Proyecto
+
+```
+Trenfe_Intranet/
+├── main.ts                     # API interna + middlewares auth
+├── routes/
+│   ├── _app.tsx               # Shell HTML
+│   ├── (index)/index.tsx      # Login
+│   └── (main)/
+│       ├── dashboard.tsx
+│       ├── user.tsx
+│       ├── news.tsx
+│       └── tickets.tsx
+├── components/
+├── islands/
+├── assets/styles.css
+└── static/
+```
+
+### Instalacion
+
+1. Entra en `Trenfe_Intranet`
+2. Crea `.env` desde `.env.example`
+3. Arranca en desarrollo:
+
+```bash
+deno task dev
+```
+
+4. Build y start:
+
+```bash
+deno task build
+deno task start
+```
+
+### Variables de Entorno
+
+```env
+EMAIL=admin@admin.com
+PASSWORD=admin123
+```
+
+| Variable   | Descripcion |
+|------------|-------------|
+| `EMAIL`    | Email admin valido para login intranet |
+| `PASSWORD` | Password admin valido para login intranet |
+
+### Endpoints de API Interna (`main.ts`)
+
+#### Auth
+
+| Metodo | Ruta          | Descripcion |
+|--------|---------------|-------------|
+| POST   | `/api/login`  | Login admin por `form-data`, set cookie `auth=admin-token` |
+| GET    | `/api/logout` | Logout y borrado de cookie |
+
+#### Noticias
+
+| Metodo | Ruta        | Proxy backend         |
+|--------|-------------|-----------------------|
+| GET    | `/api/news` | `GET /news` |
+| POST   | `/api/news` | `POST /news/create` |
+| PUT    | `/api/news` | `PUT /news` |
+| DELETE | `/api/news` | `DELETE /news/:newid` |
+
+#### Tickets
+
+| Metodo | Ruta           | Proxy backend |
+|--------|----------------|---------------|
+| GET    | `/api/tickets` | `GET /ticket` |
+| POST   | `/api/tickets` | `POST /ticket/create` |
+| PUT    | `/api/tickets` | `PUT /ticket` |
+| DELETE | `/api/tickets` | `DELETE /ticket/:ticketid` |
+
+#### Usuarios
+
+| Metodo | Ruta         | Proxy backend |
+|--------|--------------|---------------|
+| GET    | `/api/users` | `GET /user` |
+| POST   | `/api/users` | `POST /register` |
+| PUT    | `/api/users` | `PUT /user` |
+| DELETE | `/api/users` | `DELETE /user/:userid` |
+| POST   | `/api/hash`  | Verificacion local bcrypt |
+
+### Rutas Web
+
+| Ruta         | Descripcion |
+|--------------|-------------|
+| `/`          | Login |
+| `/dashboard` | Dashboard |
+| `/user`      | CRUD usuarios |
+| `/news`      | CRUD noticias |
+| `/tickets`   | CRUD tickets |
+
+### Seguridad
+
+- Sesion por cookie `auth=admin-token`
+- Middleware `checkAuth` para `/(main)`
+- Middleware `alreadylogged` para `/(index)`
+- Operaciones admin con cabecera `Authorization` hacia backend
+
+---
+
+## Arranque Rapido (3 proyectos)
+
+```bash
+# Terminal 1
+cd /Users/sergioom9/Documents/Universidad/TRENFE/Trenfe_BackEnd && deno task start
+
+# Terminal 2
+cd /Users/sergioom9/Documents/Universidad/TRENFE/Trenfe_FrontEnd && deno task dev
+
+# Terminal 3
+cd /Users/sergioom9/Documents/Universidad/TRENFE/Trenfe_Intranet && deno task dev
+```
+
+## Notas Finales
+
+- Backend es la unica fuente de datos de negocio (usuarios, tickets, noticias, tracking).
+- Frontend e Intranet consumen la API desplegada en `https://backend-renfe.sergioom9.deno.net`.
+- Mantener coherencia visual moderna entre web publica y chatbot para una experiencia uniforme.

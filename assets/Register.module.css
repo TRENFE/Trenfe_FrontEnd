@@ -6,8 +6,8 @@
   justify-content: center;
   overflow: hidden;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 8px 10px;
 }
-
 
 @keyframes gradientShift {
   0% {
@@ -21,17 +21,15 @@
   }
 }
 
-
 @keyframes sunGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 60px rgba(194, 167, 116, 0.5);
   }
   50% {
     box-shadow: 0 0 80px rgba(255, 200, 100, 0.8);
   }
 }
-
-
 
 .glassBox {
   position: relative;
@@ -40,10 +38,11 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
- padding: 15 28px;
-   width: 100%;
-  max-width: 600px;
-  box-shadow: 
+  padding: 12px;
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
@@ -63,26 +62,31 @@
 }
 
 :global(main) {
-      align-items: center;
-    justify-content: center;
-    overflow-y: auto;
-    display: flex;
-    padding:5px;
+  width: 100%;
+  max-width: 100%;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: hidden;
+  grid-row: 2;
 }
 
 .title {
   text-align: center;
-  font-size: 28px;
+  font-size: 1.95rem;
   font-weight: 600;
   color: white;
-  margin: 20px 33px;
+  margin: 0 0 14px 0;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .inputGroup {
@@ -93,15 +97,14 @@
 
 .input {
   width: 100%;
-  padding: 14px 18px 14px 45px;
+  padding: 12px 16px 12px 42px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 12px;
-  font-size: 15px;
+  font-size: 14px;
   color: white;
   transition: all 0.3s ease;
   outline: none;
-  margin:0px 25px;
 }
 
 .input::placeholder {
@@ -116,65 +119,29 @@
 
 .icon {
   position: absolute;
-  left: 32px;
-  font-size: 18px;
+  left: 12px;
+  font-size: 15px;
   opacity: 0.8;
 }
 
-.options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-.checkbox {
-  display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  gap: 6px;
-}
-
-.checkbox input {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  accent-color: rgba(255, 200, 100, 0.8);
-}
-
-.link {
-  color: rgba(255, 200, 100, 0.9);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.link:hover {
-  color: rgba(255, 220, 130, 1);
-  text-decoration: underline;
-}
-
 .button {
-  padding: 14px;
+  padding: 12px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
   color: #667eea;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 10px;
+  margin-top: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  margin-inline: 25px;
 }
 
 .button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 100%);
-
 }
 
 .button:active {
@@ -182,24 +149,27 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
 
-
 .register {
   text-align: center;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.8);
-  margin-top: 20px;
+  margin-top: 14px;
   margin-bottom: 0;
-  padding: 20px;
 }
-
 
 .registerLink {
   color: rgba(255, 200, 100, 0.9);
@@ -211,4 +181,29 @@
 .registerLink:hover {
   color: rgba(255, 220, 130, 1);
   text-decoration: underline;
+}
+
+.oauthDivider {
+  margin: 12px 0 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  text-align: center;
+}
+
+.googleWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 720px) {
+  .glassBox {
+    max-width: 90vw;
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 1.65rem;
+    margin-bottom: 12px;
+  }
 }

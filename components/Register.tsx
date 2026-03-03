@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import styles from "../assets/Register.module.css";
 import AlertIsland from "../islands/Alert.tsx";
 import { alertVisible2 } from "../signals.ts";
@@ -8,6 +8,12 @@ type Message = {
   visible: boolean;
 };
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 const RegisterPage = () => {
   const [userid, setUserid] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +22,11 @@ const RegisterPage = () => {
   const [msg, setMsg] = useState<Message>({ message: "", visible: false });
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
+
+  const showMessage = (message: string) => {
+    setMsg({ message, visible: true });
+    alertVisible2.value = true;
+  };
 
   function isPasswordValid(password: string): boolean {
     if (password.length < 8) return false;
@@ -41,7 +52,7 @@ const RegisterPage = () => {
 
   function getPasswordErrors(password: string): string {
     if (password.length === 0) return "";
-    
+
     const errors = [];
     if (password.length < 8) errors.push("mínimo 8 caracteres");
     if (!/[A-Z]/.test(password)) errors.push("una mayúscula");
@@ -64,34 +75,30 @@ const RegisterPage = () => {
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    
+
     if (!isPasswordValid(password)) {
-      setMsg({ message: "❌ Contraseña no valida", visible: true });
-      alertVisible2.value = true;
+      showMessage("❌ Contraseña no valida");
       return;
     }
     if (!isEmailValid(email)) {
-      setMsg({ message: "❌ Email no valido", visible: true });
-      alertVisible2.value = true;
+      showMessage("❌ Email no valido");
       return;
     }
-    const bodyData = { userid: userid, email: email, password: password, name: name };
+    const bodyData = { userid, email, password, name };
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData),
     });
-    
+
     if (res.ok) {
-      setMsg({ message: "✅ Registro correcto", visible: true });
-      alertVisible2.value = true;
+      showMessage("✅ Registro correcto");
       const bearer = document.cookie
         .split("; ")
         .find((c) => c.startsWith("bearer="))
         ?.split("=")[1];
       if (!bearer) {
-        setMsg({ message: "❌ No valid token found", visible: true });
-        alertVisible2.value = true;
+        showMessage("❌ No valid token found");
         return;
       }
       const verifyRes = await fetch("/api/token", {
@@ -102,21 +109,111 @@ const RegisterPage = () => {
       if (verifyRes.ok) {
         const verified = await verifyRes.json();
         if (verified.success == "OK") {
-          document.cookie = `bearer=${encodeURIComponent(verified.bearer)}; path=/; max-age=${3600}`;
+          document.cookie =
+            `bearer=${encodeURIComponent(verified.bearer)}; path=/; max-age=${3600}`;
           globalThis.location.href = "/profile";
         } else {
-          setMsg({ message: "❌ Invalid Token", visible: true });
-          alertVisible2.value = true;
+          showMessage("❌ Invalid Token");
         }
       } else {
-        setMsg({ message: "❌ Error Servidor", visible: true });
-        alertVisible2.value = true;
+        showMessage("❌ Error Servidor");
       }
     } else {
-      setMsg({ message: `❌ Registro incorrecto,asegurate que el email y usuario no esten registrados`, visible: true });
-      alertVisible2.value = true;
+      showMessage("❌ Registro incorrecto,asegurate que el email y usuario no esten registrados");
     }
   }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadGoogleScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        const existing = document.getElementById("google-identity-script") as
+          | HTMLScriptElement
+          | null;
+
+        if (existing) {
+          if (window.google?.accounts?.id) {
+            resolve();
+          } else {
+            existing.addEventListener("load", () => resolve(), { once: true });
+            existing.addEventListener("error", () => reject(), { once: true });
+          }
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.id = "google-identity-script";
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject();
+        document.head.appendChild(script);
+      });
+    };
+
+    const setupGoogleRegister = async () => {
+      try {
+        const clientRes = await fetch("/api/oauth/google/client-id");
+        if (!clientRes.ok) return;
+
+        const clientData = await clientRes.json();
+        const clientId = String(clientData?.clientId || "").trim();
+        if (!clientId) return;
+
+        await loadGoogleScript();
+        if (cancelled || !window.google?.accounts?.id) return;
+
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response: { credential?: string }) => {
+            const idToken = String(response?.credential || "").trim();
+            if (!idToken) {
+              showMessage("❌ No se pudo obtener credencial de Google");
+              return;
+            }
+
+            const loginRes = await fetch("/api/login/google", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idToken }),
+            });
+
+            if (!loginRes.ok) {
+              const errData = await loginRes.json().catch(() => ({ error: "Error OAuth" }));
+              showMessage(`❌ ${errData.error || "Error OAuth"}`);
+              return;
+            }
+
+            showMessage("✅ Registro con Google correcto");
+            globalThis.location.replace("/profile");
+          },
+        });
+
+        const googleContainer = document.getElementById("google-register-button");
+        if (googleContainer) {
+          googleContainer.innerHTML = "";
+          window.google.accounts.id.renderButton(googleContainer, {
+            theme: "outline",
+            size: "large",
+            shape: "pill",
+            text: "signup_with",
+            locale: "es",
+            width: 320,
+          });
+        }
+      } catch (error) {
+        console.error("Error setting up Google login:", error);
+      }
+    };
+
+    void setupGoogleRegister();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isFormValid = userid && isEmailValid(email) && name && isPasswordValid(password);
 
@@ -171,8 +268,7 @@ const RegisterPage = () => {
               placeholder="Contraseña"
               value={password}
               onInput={(e) =>
-                handlePasswordChange((e.target as HTMLInputElement).value)
-              }
+                handlePasswordChange((e.target as HTMLInputElement).value)}
               className={styles.input}
             />
             <span className={styles.icon}>🔒</span>
@@ -181,8 +277,8 @@ const RegisterPage = () => {
           {passwordError && (
             <div
               style={{
-                marginLeft:"40px",
-                marginRight:"40px",
+                marginLeft: "40px",
+                marginRight: "40px",
                 padding: "10px 12px",
                 borderRadius: "8px",
                 fontSize: "13px",
@@ -198,8 +294,8 @@ const RegisterPage = () => {
           {emailError.includes("❌") && (
             <div
               style={{
-                marginLeft:"40px",
-                marginRight:"40px",
+                marginLeft: "40px",
+                marginRight: "40px",
                 padding: "10px 12px",
                 borderRadius: "8px",
                 fontSize: "13px",
@@ -225,6 +321,11 @@ const RegisterPage = () => {
             Registro
           </button>
         </form>
+
+        <div className={styles.oauthDivider}>o continúa con</div>
+        <div className={styles.googleWrap}>
+          <div id="google-register-button" />
+        </div>
 
         <p className={styles.register}>
           Ya tienes una cuenta?{" "}
