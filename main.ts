@@ -130,6 +130,7 @@ app.post("/api/login", async (ctx: any) => {
       { status: 200, headers: apiResponse.headers },
     );
   } catch (error) {
+    console.error("Error en /api/login:", error);
     return new Response(
       JSON.stringify({ error: `Error interno` }),
       { status: 500, headers: { "Content-Type": "application/json" } },
