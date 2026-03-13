@@ -492,7 +492,7 @@ app.post("/api/buy", async (ctx: any) => {
       );
     }
     const realId = atob(id)
-    const ticketInfo = await fetch(`/api/ticket/${realId}`)
+    const ticketInfo = await fetch(`https://backend-renfe.sergioom9.deno.net/ticket/${realId}`)
     const tickData = await ticketInfo.json()
     const apiResponse = await fetch(
       "https://backend-renfe.sergioom9.deno.net/stripe/create",
