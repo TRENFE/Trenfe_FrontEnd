@@ -513,7 +513,8 @@ app.post("/api/buy", async (ctx: any) => {
     const result = await apiResponse.json();
     const { Payment_url } = result;
     return new Response(null,{status:302,headers:{"Location":Payment_url}})
-  } catch (_error) {
+  } catch (error) {
+    console.log(error)
     return new Response(
       JSON.stringify({ error: `Error interno` }),
       { status: 500, headers: { "Content-Type": "application/json" } },
