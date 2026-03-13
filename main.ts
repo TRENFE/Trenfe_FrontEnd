@@ -500,13 +500,12 @@ app.post("/api/buy", async (ctx: any) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "cookie":ctx.req.headers.get("cookie")
         },
         body: JSON.stringify({ amount:tickData.price,quantity:quantity,id:realId}),
       },
     );
     if (!apiResponse.ok) {
-      const resres = await apiResponse.json()
-      console.log(resres)
       return new Response(
         JSON.stringify({ error: apiResponse.statusText }),
         { status: 401, headers: { "Content-Type": "application/json" } },
