@@ -505,6 +505,8 @@ app.post("/api/buy", async (ctx: any) => {
       },
     );
     if (!apiResponse.ok) {
+      const resres = await apiResponse.json()
+      console.log(resres)
       return new Response(
         JSON.stringify({ error: apiResponse.statusText }),
         { status: 401, headers: { "Content-Type": "application/json" } },
