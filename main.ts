@@ -502,7 +502,7 @@ app.post("/api/buy", async (ctx: any) => {
           "Content-Type": "application/json",
           "cookie":ctx.req.headers.get("cookie")
         },
-        body: JSON.stringify({ amount:tickData.price,quantity:quantity,id:realId}),
+        body: JSON.stringify({ amount:tickData.price,quantity:quantity,id:id}),
       },
     );
     console.log(apiResponse)
