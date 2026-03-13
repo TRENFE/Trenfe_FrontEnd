@@ -505,11 +505,10 @@ app.post("/api/buy", async (ctx: any) => {
         body: JSON.stringify({ amount:tickData.price,quantity:quantity,id:id}),
       },
     );
-    console.log(apiResponse)
     if (!apiResponse.ok) {
       return new Response(
         JSON.stringify({ error: apiResponse.statusText }),
-        { status: 401, headers: { "Content-Type": "application/json" } },
+        { status: apiResponse.status, headers: { "Content-Type": "application/json" } },
       );
     }
     const result = await apiResponse.json();
