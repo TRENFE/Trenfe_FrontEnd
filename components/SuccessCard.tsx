@@ -121,13 +121,7 @@ export default function SuccesCard() {
         >
           <p className={styles.sectionText}>🆔 <b>ID:</b> {ticket.ticketid}</p>
           <p className={styles.sectionText}>📅 <b>Fecha:</b> {ticket.date}</p>
-          <p className={styles.sectionText}>💰 <b>Precio:</b> {parseFloat(ticket.price) * quantity} $</p>
-          <p className={styles.sectionText}>💰 <b>Cantidad:</b> {quantity} </p>
-          {ticket.price && (
-            <p className={styles.sectionText}>
-              🪙 <b>Monedas ganadas:</b> {Math.round(parseFloat(ticket.price) /10 * quantity)}
-            </p>
-          )}
+          <p className={styles.sectionText}>💰 <b>Precio:</b> {ticket.price} $</p>
         </div>
 
         <p
