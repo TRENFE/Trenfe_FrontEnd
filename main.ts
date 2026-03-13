@@ -513,7 +513,7 @@ app.post("/api/buy", async (ctx: any) => {
     }
     const result = await apiResponse.json();
     const { Payment_url } = result;
-    return new Response(null,{status:302,headers:{"Location":Payment_url}})
+    return new Response(JSON.stringify({ url: Payment_url }),{status:200,headers: { "Content-Type": "application/json" }})
   } catch (error) {
     console.log(error)
     return new Response(

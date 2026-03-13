@@ -52,13 +52,11 @@ export default function BuyButton({ availableTickets }: BuyButtonProps) {
       globalThis.location.replace("/tickets");
       return;
     }
-    if (res.status === 302) {
-    const location = res.headers.get("Location");
-    if (location) {
-      console.log(location)
-      globalThis.location.href = location;
+    const {url} = await res.json();
+    if (url) {
+      globalThis.location.href = url;
       return;
-    }
+
   }
     return
   };
