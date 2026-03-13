@@ -43,19 +43,16 @@ export default function BuyButton({ availableTickets }: BuyButtonProps) {
       globalThis.location.replace("/tickets");
       return;
     }
-    const ticketid = atob(id);
     const res = await fetch("/api/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ticketid, quantity }),
+      body: JSON.stringify({ id, quantity }),
     });
     if (!res.ok) {
       globalThis.location.replace("/tickets");
       return;
     }
-    globalThis.location.replace(
-      `/tickets/success/${btoa(`${ticketid}+${quantity}`)}`,
-    );
+    return
   };
 
   useEffect(() => {

@@ -484,21 +484,24 @@ app.post("/api/buy", async (ctx: any) => {
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    const { ticketid, quantity } = data;
-    if (!ticketid || !Number.isInteger(quantity) || quantity <= 0) {
+    const { id, quantity } = data;
+    if (!id || !Number.isInteger(quantity) || quantity <= 0) {
       return new Response(
         JSON.stringify({ error: "Invalid params" }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
+    const realId = atob(id)
+    const ticketInfo = await fetch(`/api/ticket/${id}`)
+    const tickData = await ticketInfo.json()
     const apiResponse = await fetch(
-      "https://backend-renfe.sergioom9.deno.net/token/user",
+      "https://backend-renfe.sergioom9.deno.net/stripe/create",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ bearer: token }),
+        body: JSON.stringify({ amount:tickData.price,quantity:quantity,id:realId}),
       },
     );
     if (!apiResponse.ok) {
@@ -508,29 +511,8 @@ app.post("/api/buy", async (ctx: any) => {
       );
     }
     const result = await apiResponse.json();
-    const { userid } = result;
-    const apires2 = await fetch(
-      "https://backend-renfe.sergioom9.deno.net/ticket/sell",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cookie": `bearer=${token}`,
-        },
-        body: JSON.stringify({ ticketid, userid, quantity }),
-      },
-    );
-    if (!apires2.ok) {
-      return new Response(
-        JSON.stringify({ error: apires2.statusText }),
-        { status: 401, headers: { "Content-Type": "application/json" } },
-      );
-    }
-    const resjson2 = await apires2.json();
-    return new Response(
-      JSON.stringify(resjson2),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
+    const { Payment_url } = result;
+    return new Response(null,{status:302,headers:{"Location":Payment_url}})
   } catch (_error) {
     return new Response(
       JSON.stringify({ error: `Error interno` }),
