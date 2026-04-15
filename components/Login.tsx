@@ -63,11 +63,8 @@ const LoginPage = () => {
         showMessage("❌ Invalid Token");
       }
     } else {
-      if (res.status === 429) {
         showMessage(`❌ ${data.error}`);
         return;
-      }
-      showMessage("❌ Login Incorrecto");
     }
   }
 
