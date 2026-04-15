@@ -105,7 +105,7 @@ app.post("/api/login", async (ctx: any) => {
       },
     );
     const result = await apiResponse.json();
-    if (result.error == "Anti-BruteForce Triggered") {
+    if (result.error == "Anti-BrutteForce Triggered") {
       return new Response(
         JSON.stringify({ error: "Email bloqueado por seguridad" }),
         { status: 429, headers: { "Content-Type": "application/json" } },
